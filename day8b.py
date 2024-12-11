@@ -119,11 +119,11 @@ for key in antenna_locs:
         line = points_on_line(num_rows-1, num_cols-1, ant_pair[0], ant_pair[1])
         print("line: ",line)
         for point in line:
-            distance1 = distance(ant_pair[0],point)
-            distance2 = distance(ant_pair[1], point)
-            print(f"distance from {point} to {ant_pair[0]} is {distance1}, to {ant_pair[1]} is {distance2}")
-            if ((distance1 == (2*distance2)) or (distance2 == (2*distance1))):
-                room_map[point] = '#'
+            # distance1 = distance(ant_pair[0],point)
+            # distance2 = distance(ant_pair[1], point)
+            # print(f"distance from {point} to {ant_pair[0]} is {distance1}, to {ant_pair[1]} is {distance2}")
+            # if ((distance1 == (2*distance2)) or (distance2 == (2*distance1))):
+            room_map[point] = '#'
 
 print_map(room_map)
 
