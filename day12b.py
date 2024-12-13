@@ -35,22 +35,51 @@ def parse_garden_map(garden_map):
                 plot_areas[plant_type] = 0
             plot_areas[plant_type] += 1
 
-def calculate_perimeter_of_region(garden_map, region_coords):
-    """Calculates the perimeter of a single region given its coordinates."""
-    perimeter = 0
-    num_rows, num_cols = garden_map.shape
+def calculate_sides_of_region(garden_map, region_coords):
+    """Calculates the number of sides of a single region given its coordinates."""
+    sides = 0
+    region_set = set(region_coords)
+
     for y, x in region_coords:
-        plant_type = garden_map[y, x]
         # Check each of the four sides
-        if y == 0 or garden_map[y-1, x] != plant_type:  # Top side
-            perimeter += 1
-        if y == num_rows-1 or garden_map[y+1, x] != plant_type:  # Bottom side
-            perimeter += 1
-        if x == 0 or garden_map[y, x-1] != plant_type:  # Left side
-            perimeter += 1
-        if x == num_cols-1 or garden_map[y, x+1] != plant_type:  # Right side
-            perimeter += 1
-    return perimeter
+        if (y - 1, x) not in region_set:  # Top side
+            sides += 1
+        if (y + 1, x) not in region_set:  # Bottom side
+            sides += 1
+        if (y, x - 1) not in region_set:  # Left side
+            sides += 1
+        if (y, x + 1) not in region_set:  # Right side
+            sides += 1
+
+    return sides
+
+def calculate_vertices_of_region(garden_map, region_coords):
+    """Calculates the total number of vertices in a region given its coordinates."""
+    vertices = 0
+    region_set = set(region_coords)
+
+    for y, x in region_coords:
+        # Check for outside vertices
+        if (y - 1, x) not in region_set and (y, x + 1) not in region_set:  # UP and RIGHT
+            vertices += 1
+        if (y, x + 1) not in region_set and (y + 1, x) not in region_set:  # RIGHT and DOWN
+            vertices += 1
+        if (y + 1, x) not in region_set and (y, x - 1) not in region_set:  # DOWN and LEFT
+            vertices += 1
+        if (y, x - 1) not in region_set and (y - 1, x) not in region_set:  # LEFT and UP
+            vertices += 1
+
+        # Check for inside vertices
+        if (y - 1, x) in region_set and (y, x + 1) in region_set and (y - 1, x + 1) not in region_set:  # UP and RIGHT
+            vertices += 1
+        if (y, x + 1) in region_set and (y + 1, x) in region_set and (y + 1, x + 1) not in region_set:  # RIGHT and DOWN
+            vertices += 1
+        if (y + 1, x) in region_set and (y, x - 1) in region_set and (y + 1, x - 1) not in region_set:  # DOWN and LEFT
+            vertices += 1
+        if (y, x - 1) in region_set and (y - 1, x) in region_set and (y - 1, x - 1) not in region_set:  # LEFT and UP
+            vertices += 1
+
+    return vertices
 
 def get_region_coordinates(garden_map, start_coord):
     """Returns a list of all coordinates of the region given the garden_map and a starting coordinate."""
@@ -75,23 +104,23 @@ def get_region_coordinates(garden_map, start_coord):
     return region_coords
 
 class Region:
-    def __init__(self, plant_type: str, perimeter: int, area: int):
+    def __init__(self, plant_type: str, vertices: int, area: int):
         self.plant_type = plant_type
-        self.perimeter = perimeter
+        self.vertices = vertices
         self.area = area
 
     def __repr__(self):
-        return f"Region(plant_type='{self.plant_type}', perimeter={self.perimeter}, area={self.area})"
+        return f"Region(plant_type='{self.plant_type}', vertices={self.vertices}, area={self.area})"
 
     def calculate_fence_cost(self):
         """Calculates the cost of fencing the region."""
-        return self.area * self.perimeter
+        return self.area * self.vertices
 
 def calculate_total_fencing_cost(regions):
     """Calculates the total price of fencing all regions on the map."""
     total_cost = 0
     for region in regions:
-        print(f"Plant type: {region.plant_type}, Area: {region.area}, Perimeter: {region.perimeter}, Cost: {region.calculate_fence_cost()}")
+        print(f"Plant type: {region.plant_type}, Area: {region.area}, Vertices: {region.vertices}, Cost: {region.calculate_fence_cost()}")
         total_cost += region.calculate_fence_cost()
     return total_cost
 
@@ -121,7 +150,7 @@ for y in range(num_rows):
     for x in range(num_cols):
         if visited[y, x] == '.':
             region_coords = get_region_coordinates(garden_map, (y, x))
-            region = Region(garden_map[y, x], calculate_perimeter_of_region(garden_map, region_coords), len(region_coords))
+            region = Region(garden_map[y, x], calculate_vertices_of_region(garden_map, region_coords), len(region_coords))
             regions.append(region)
             mark_visted_cells(visited, region_coords)
 
@@ -136,3 +165,15 @@ print(f"Total fencing cost: {total_cost}")
 
 # for region in region_coords:
 #     print(f"Region: {region} is {garden_map[region]}")
+
+# # Example usage:
+# import numpy as np
+
+# garden_map = np.array([
+#     ['A', 'A', 'A'],
+#     ['A', 'B', 'B'],
+#     ['A', 'B', 'B']
+# ])
+
+# region_coords = [(0, 0), (0, 1), (0, 2), (1, 0), (2, 0)]
+# print(calculate_vertices_of_region(garden_map, region_coords))  # Output: 6
