@@ -22,8 +22,9 @@ from collections import deque
 from typing import List, Tuple
 
 class Node:
-    def __init__(self, data):
+    def __init__(self, data, count=1):
         self.data = data
+        self.count = count
         self.prev = None
         self.next = None
 
@@ -32,8 +33,8 @@ class DoublyLinkedList:
         self.head = None
         self.tail = None
 
-    def append(self, data):
-        new_node = Node(data)
+    def append(self, data, count=1):
+        new_node = Node(data, count)
         if not self.head:
             self.head = self.tail = new_node
         else:
@@ -41,11 +42,11 @@ class DoublyLinkedList:
             new_node.prev = self.tail
             self.tail = new_node
 
-    def insert(self, prev_node, data):
+    def insert(self, prev_node, data, count=1):
         if not prev_node:
             print("Previous node cannot be null")
             return
-        new_node = Node(data)
+        new_node = Node(data, count)
         new_node.next = prev_node.next
         prev_node.next = new_node
         new_node.prev = prev_node
@@ -63,13 +64,13 @@ class DoublyLinkedList:
             node.next.prev = node.prev
         if node.prev:
             node.prev.next = node.next
-        else:
+        if self.tail == node:
             self.tail = node.prev
 
     def print_list(self):
         current = self.head
         while current:
-            print(current.data, end=' ')
+            print(f"{current.data}({current.count})", end=' ')
             current = current.next
         print()
 
@@ -85,6 +86,30 @@ class DoublyLinkedList:
         for item in array:
             self.append(item)
 
+    def compress(self):
+        current = self.head
+        while current and current.next:
+            runner = current.next
+            while runner:
+                if runner.data == current.data:
+                    current.count += runner.count
+                    # Remove runner node
+                    if runner.next:
+                        runner.next.prev = runner.prev
+                    runner.prev.next = runner.next
+                    if runner == self.tail:
+                        self.tail = runner.prev
+                runner = runner.next
+            current = current.next
+
+    def sum_counts(self):
+        total_count = 0
+        current = self.head
+        while current:
+            total_count += current.count
+            current = current.next
+        return total_count
+
 def read_initial(file_path):
     """Read the initial state from the specified file. Returns a list of integers."""
     with open(file_path, 'r') as file:
@@ -96,7 +121,7 @@ def blink(rocks: DoublyLinkedList):
     while current:
         next_node = current.next
         if current.data == 0:
-            rocks.insert(current, 1)
+            rocks.insert(current, 1, current.count)
             rocks.delete(current)
         elif len(str(current.data)) % 2 == 0:
             # print(f"Splitting {current.data}")
@@ -104,66 +129,26 @@ def blink(rocks: DoublyLinkedList):
             half = len(number_str) // 2
             left = int(number_str[:half])
             right = int(number_str[half:])
-            rocks.insert(current, left)
-            rocks.insert(current.next, right)
+            rocks.insert(current, left, current.count)
+            rocks.insert(current.next, right, current.count)
             rocks.delete(current)
         else:
-            rocks.insert(current, current.data * 2024)
+            rocks.insert(current, current.data * 2024, current.count)
             rocks.delete(current)
         current = next_node
+    rocks.compress()
 
-def multi_blink(rocks: DoublyLinkedList, num_blinks: int):
-    """Simulate multiple blinks."""
-    for _ in range(num_blinks):
-        blink(rocks)
-
-tally = 0
-file_path = "day11a_exam.txt"
+file_path = "day11a_input.txt"
 initial_rocks = read_initial(file_path) 
 print(initial_rocks)
-rocknum = 0
-for rock in initial_rocks:
-    rocknum += 1
-    rocks = DoublyLinkedList()
-    rocks.initialize_from_array([rock])
-    # print(f"Processing rock {rock}")   
+# Create a doubly linked list named rocks and initialize it with the initial_rocks
+rocks = DoublyLinkedList()
+rocks.initialize_from_array(initial_rocks)
+rocks.print_list()
+# Simulate 10 blinks
+for x in range(75):
+    blink(rocks)
+    print(f"Blink {x+1}, number of rocks: {rocks.sum_counts()}") 
     # rocks.print_list()
-    # Simulate 10 blinks
-    for x in range(15):
-        blink(rocks)
-    print(f"Rock {rock}, number of rocks: {rocks.count()}")
-    # print("Rocks is now:")
-    # rocks.print_list()
-    current_x = rocks.head
-    iteration = 0
-    while current_x:
-        iteration += 1
-        print(f"Rock {rocknum} of {len(initial_rocks)}, Iteration {iteration} of {rocks.count()}")
-        rock_x = DoublyLinkedList()
-        rock_x.initialize_from_array([current_x.data])
-        for x in range(25):
-            # print(f"Processing rock {current_x.data}")
-            blink(rock_x)
-        # print("rock_x is now:")
-        # rock_x.print_list() 
-        current_y = rock_x.head
-        while current_y:
-            rock_y = DoublyLinkedList()
-            rock_y.initialize_from_array([current_y.data])
-            for y in range(35):
-                blink(rock_y)
-            # print(f"rock {rock} x {x}, y {y}")
-            # print("rock_y is now:")
-            # rock_y.print_list()
-            tally += rock_y.count()
-            # iteration += 1
-            # if (iteration%10000 == 0):
-            #     print(f"Iteration {iteration}, tally: {tally}")
-            current_y = current_y.next
-        # rocks.print_list()
-        # print(f"current_x: {current_x.data}, current_x.next: {current_x.next.data}")
-        current_x = current_x.next
-        # print(f"Now current_x is {current_x.data}") 
-        # exit()
 
-print(f"Number of rocks: {tally}")
+print(f"Number of rocks: {rocks.sum_counts()}")
