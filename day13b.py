@@ -37,23 +37,26 @@ def format_data(data):
 
 def win_prize(prize):
     """Find the lowest cost to win the prize. Return the cost, or 0 if it's impossible."""
-    # print(f"Prize: {prize}") 
-    # a_top = (prize['prize_loc']['y']) - 
-    step_size = prize['button_a']['x'] * prize['button_b']['x']
-    for x in range(0, prize['prize_loc']['x'], step_size):
+    a = 0 # a presses
+    b = 0 # b presses
+    ax = prize['button_a']['x']
+    ay = prize['button_a']['y']
+    bx = prize['button_b']['x']
+    by = prize['button_b']['y']
+    px = prize['prize_loc']['x']
+    py = prize['prize_loc']['y']
 
-    max_a_presses = min(prize['prize_loc']['x'] // prize['button_a']['x'], prize['prize_loc']['y'] // prize['button_a']['y'])
-    for a_presses in range(max_a_presses + 1):
-        remaining_x = prize['prize_loc']['x'] - (a_presses * prize['button_a']['x'])
-        remaining_y = prize['prize_loc']['y'] - (a_presses * prize['button_a']['y'])
-        if remaining_x % prize['button_b']['x'] == 0 and remaining_y % prize['button_b']['y'] == 0:
-            b_presses = remaining_x // prize['button_b']['x']
-            if remaining_y == b_presses * prize['button_b']['y']:
-                return a_presses * BUTTON_A_COST + b_presses * BUTTON_B_COST
+    b = ((ax*py) - (ay*px)) // ((ax*by) - (ay*bx))
+    print(f"b: {b}")
+    a = (px - (b * bx)) // ax
+    print(f"a: {a}")
+    if (a * ax) + (b * bx) == px and (a * ay) + (b * by) == py:
+        return (a * BUTTON_A_COST) + (b * BUTTON_B_COST)
     return 0
 
+
 # Example usage
-filepath = 'day13a_exam.txt'
+filepath = 'day13a_input.txt'
 parsed_data = parse_file(filepath)
 print(format_data(parsed_data))
 
